@@ -1,0 +1,26 @@
+{
+  "name": "career-scout-profile-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "description": "Standalone Career Scout Profile coordinator, Fact extraction and Profile Builder",
+  "exports": "./src/index.mjs",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env.local bin/profile-agent.mjs",
+    "demo": "node bin/profile-agent.mjs demo",
+    "test": "node --test tests/*.test.mjs",
+    "verify:upstream": "node scripts/verify-upstream.mjs"
+  },
+  "dependencies": {
+    "@langchain/langgraph": "1.5.2",
+    "fflate": "0.8.3",
+    "fast-xml-parser": "5.11.2",
+    "unpdf": "1.4.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.13"
+  }
+}
