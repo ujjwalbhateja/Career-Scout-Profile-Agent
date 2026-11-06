@@ -4,6 +4,8 @@ Runnable Profile Agent, Fact Agent and Profile Builder extracted from [Career Sc
 
 This repository runs as a **Node.js library and local command-line tool**. It does not include Career Scout's browser interface or the downstream job-search/application service. Shared modules required by the original implementation remain included to preserve behavior.
 
+Download the [complete PDF manual](docs/Career%20Scout%20Profile%20Agent%20Documentation.pdf) for the consolidated documentation and rendered diagrams.
+
 ## Start here
 
 | Document | Covers |

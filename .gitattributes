@@ -1,2 +1,4 @@
 # Preserve upstream bytes across Windows/Linux checkouts for UPSTREAM.json hashes.
 * -text
+*.pdf binary
+*.docx binary
