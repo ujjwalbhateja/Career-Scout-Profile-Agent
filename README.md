@@ -1,63 +1,43 @@
 # Career Scout Profile Agent
 
-Runnable Profile Agent, Fact Agent and Profile Builder extracted from [Career Scout](https://github.com/ujjwalbhateja/Career_Scout). Profile turns a resume and optional job descriptions into a source-backed, versioned profile that Master can use. It owns storage and user decisions; its two analysis agents never approve claims themselves.
+This repository contains a fork of the Career Scout application in [`career-scout-app/`](career-scout-app/). It keeps the profile journey, source and approval controls, optional JD questionnaires, profile memory, application preparation, review, package storage, architecture view and progress view. The Scout agent, job discovery page and `/api/scout` endpoint have been removed. Application preparation now requires a job supplied by the user.
 
-This repository runs as a **Node.js library, local command-line tool and local Profile webpage**. The webpage uses Career Scout's Profile styling and the standalone agent actions for document intake, Fact review, optional Builder comparison, current-profile handoff and owner-scoped memory. It does not include the original Career Scout Scout or applications screens. Shared modules required by the original implementation remain included to preserve behavior.
+The original standalone Profile library and its earlier webpage remain at the repository root for source history and CLI use. **The primary website retains the Career Scout name** and is launched by `Start-Profile-Agent.ps1` on port 5176. The earlier root `web/` page on port 5175 is superseded.
 
-## Open the local Profile webpage
+## Run on Windows
 
-Run `./Start-Profile-Agent.ps1` from this folder on Windows, or `npm run web` with Node.js 22.13 or later. The launcher opens the local page on port 5175. If the host is already running, rerunning the launcher opens the existing page. It prints a private browser access link; use that link if the browser does not open automatically. The web host binds only to `127.0.0.1`, resolves its owner from `.env.local`, and rejects requests without its local session cookie. Configure a unique `profile-agent:` owner and Supabase server settings as described in [setup](docs/SETUP.md). Gemini is required for live Fact and Builder analysis. No credentials or existing Career Scout profile are bundled.
+1. Install Node.js 22.13 or newer and Python with `uv`.
+2. In `career-scout-app/`, run `npm ci` and in `career-scout-app/backend/`, run `uv sync --locked`.
+3. Copy `career-scout-app/.env.example` to `career-scout-app/.env.local` and configure the same provider settings used by Career Scout. Keep this file private. The browser mock user ID is `profile_agent_local_seedy`, separate from Career Scout's `local_seedy`, so the two sites do not share profile records even when they use the same Supabase project.
+4. Run `powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Start-Profile-Agent.ps1` from this directory. Open `http://127.0.0.1:5176/`.
 
-The web UI is a Profile-only adaptation of Career Scout's page. Its copied CSS comes from the Career Scout source tree; the browser controller and local HTTP host are new. The older [PDF manual](docs/Career%20Scout%20Profile%20Agent%20Documentation.pdf) documents the initial library/CLI extraction and predates this webpage.
+The launcher starts the Python application pipeline and the web app. Application packages and pipeline history stay in `career-scout-app/.local/`. Provider credentials and user records are never committed. For a clone with its own Python environment, `CAREER_PYTHON` may be omitted from `.env.local`; the launcher uses `backend/.venv/Scripts/python.exe`. **The localhost link is not a public website and cannot be shared with another computer.**
 
-Download the [complete PDF manual](docs/Career%20Scout%20Profile%20Agent%20Documentation.pdf) for the consolidated documentation and rendered diagrams.
-
-## Start here
-
-| Document | Covers |
-| --- | --- |
-| [Profile Agent documentation](docs/PROFILE_AGENT.md) | Purpose, responsibilities, diagrams, both subagents, evidence, memory, tools and APIs |
-| [Setup and operations](docs/SETUP.md) | Installation, configuration, database setup, running the agent, troubleshooting |
-| [API and integration](docs/API.md) | Library methods, CLI commands, action contracts and Master handoff |
-| [Validation](docs/VALIDATION.md) | Executed checks, preservation evidence and remaining limits |
-| [Upstream manifest](UPSTREAM.json) | Source repository, exact source commit and hashes of unchanged files |
-
-## Run without credentials
-
-Install Node.js 22.13 or later, then:
-
-```powershell
-npm ci
-npm run demo
-npm test
-npm run verify:upstream
-```
-
-The demo uses synthetic facts, a simulated user approval and in-memory storage. It demonstrates verified saving and the current-profile handoff; it does not call Gemini, Supabase or Pinecone. Live operation setup is documented separately.
-
-## Agent structure
+## Active agent workflow
 
 ```mermaid
-flowchart TD
-    U["User: resume, optional JDs and decisions"] --> M["Master intake boundary"]
-    M <--> P["Profile Agent: coordinator and current profile"]
-    P <--> F["Fact Agent: source-linked factual proposals"]
-    P <--> B["Profile Builder: compare requirements and ask about gaps"]
-    P <--> R["Memory adapter: owner-scoped storage and retrieval"]
-    F <--> G["Gemini analysis"]
-    B <--> G
-    R <--> S[("Supabase: authoritative records and original files")]
-    R <--> V[("Pinecone: optional derived index")]
-    R --> E["Gemini embeddings"]
-    M --> X["Scoped professional context to Scout in Career Scout"]
+flowchart LR
+    U[User: resume and optional JDs] --> P[Profile]
+    P <--> F[Fact Agent]
+    P <--> B[Profile Builder]
+    P <--> M[Memory: Supabase and Pinecone]
+    P --> C[Master]
+    J[User-supplied job] --> C
+    C <--> X[Matcher]
+    C <--> T[Tailor]
+    C <--> R[Critic]
+    C --> S[Application Storage]
 ```
 
-Memory supports the two analysis agents through Profile. It is not a third agent that writes experience. The standalone package returns the handoff to its caller; it does not start Scout.
+The original Career Scout prompt files are included in the fork. The Master and Profile prompts were adjusted only where they described the removed Scout agent. Profile facts still require source evidence and user approval. Optional JD requirements never become claims about the user.
 
-## Preservation and provenance
+## Documentation
 
-The 52 source, prompt, migration and regression-test files listed in `UPSTREAM.json` are copied unchanged from Career Scout commit `cedc267896578988c2c4607e5cd0877e45e28f39`. The standalone entry point, CLI, demo and documentation are new. Fact and Profile Builder prompts retain their original paths. Profile and Memory prompts are included as coordinator policy references; the entry point does not send them to a model or interpret them as executable routing.
+- [`docs/PROFILE_AGENT.md`](docs/PROFILE_AGENT.md): original Profile, Fact and Builder documentation.
+- [`docs/SETUP.md`](docs/SETUP.md): setup details for the earlier standalone library; use the Windows steps above for the full website.
+- [`docs/Career Scout Profile Agent Documentation.pdf`](docs/Career%20Scout%20Profile%20Agent%20Documentation.pdf): earlier PDF manual, before the full application fork.
+- [`career-scout-app/docs/PROJECT_CONTEXT.md`](career-scout-app/docs/PROJECT_CONTEXT.md): imported Career Scout project history. The fork-specific changes are recorded in [`career-scout-app/PROFILE_AGENT_FORK.md`](career-scout-app/PROFILE_AGENT_FORK.md).
 
-No existing profile, resume, credentials or database export is included. The CLI and local webpage require a separate `profile-agent:` owner identity and do not load Career Scout's environment file. The local access link is not a hosted-user authentication system; do not publish the local HTTP host on the internet.
+## Validation
 
-There is no license grant added by this extraction. Public repository visibility alone does not grant a software license; upstream and dependency licensing must be respected.
+The fork includes the upstream test suites and a regression case for ASP.NET/Hirebridge job description pages. Tests use synthetic fixtures. They do not establish provider availability or accuracy for a real resume.

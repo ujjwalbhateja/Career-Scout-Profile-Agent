@@ -1,5 +1,13 @@
 # Standalone Profile Agent context
 
+## Full Career Scout fork (November 9, 2026)
+
+The user corrected the scope: this repository should contain all Career Scout application features except the Scout agent. The full Career Scout application was imported at commit `dd95addd8811f960a7235d70f747193bfd94aa23` into `career-scout-app/`. The root standalone library and earlier port-5175 webpage remain as history; `Start-Profile-Agent.ps1` now launches the imported app on port 5176.
+
+The active fork keeps the Profile/Fact/Builder/Memory workflow, optional JD intake, privacy controls, applications, Matcher, Tailor, Critic and package storage. It removes Scout's Python agent, job-discovery API and search screen. Application preparation requires a supplied job. Master and Profile prompt files were adjusted to remove Scout instructions; the other agent prompts are preserved. The fork uses local mock user `profile_agent_local_seedy` in the same Supabase project, separate from Career Scout's `local_seedy`, so existing Career Scout profile progress is not reused or overwritten.
+
+The Hirebridge JD parser was repaired for ASP.NET form wrappers and `jobdesc` section IDs. The experience review now explains why a duration cannot be calculated when source dates are ambiguous. The fork passed 631 Node tests, 49 Python tests and TypeScript type checking on November 9. See `career-scout-app/PROFILE_AGENT_FORK.md`. The older standalone PDF and setup documents predate this full application fork.
+
 Updated November 9, 2026, America/New_York.
 
 The user requested Profile Agent documentation, diagrams, an account of its two analysis agents and tools/APIs, and a separate public GitHub repository containing runnable code and documentation. Repository name: `ujjwalbhateja/Career-Scout-Profile-Agent`.

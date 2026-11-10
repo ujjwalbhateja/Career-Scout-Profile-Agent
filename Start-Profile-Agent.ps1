@@ -1,39 +1,25 @@
 param([switch]$NoBrowser)
 $ErrorActionPreference = 'Stop'
-$projectRoot = $PSScriptRoot
-$port = 5175
-$localEnv = Join-Path $projectRoot '.env.local'
-if (Test-Path -LiteralPath $localEnv) {
-    $portLine = Get-Content -LiteralPath $localEnv | Where-Object { $_ -match '^PROFILE_WEB_PORT=' } | Select-Object -Last 1
-    if ($portLine) {
-        $configuredPort = ($portLine -split '=', 2)[1].Trim()
-        if ($configuredPort -notmatch '^\d+$' -or [int]$configuredPort -lt 1 -or [int]$configuredPort -gt 65535) { throw 'PROFILE_WEB_PORT must be a valid TCP port.' }
-        $port = [int]$configuredPort
+$projectRoot = Join-Path $PSScriptRoot 'career-scout-app'
+$url = 'http://127.0.0.1:5176/'
+$nodePath = Get-Command node -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -First 1
+if (-not $nodePath) { $nodePath = Join-Path $env:USERPROFILE 'job_search\.local\tools\node-x64\node-v22.14.0-win-x64\node.exe' }
+if (-not (Test-Path -LiteralPath $nodePath)) { throw 'Install Node.js 22.13 or newer.' }
+if (-not (Test-Path -LiteralPath (Join-Path $projectRoot 'node_modules'))) { throw 'Install dependencies in career-scout-app with npm ci.' }
+if (-not (Test-Path -LiteralPath (Join-Path $projectRoot '.env.local'))) { throw 'Create career-scout-app\.env.local with the Profile Agent provider settings.' }
+$running = $false
+try { $response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 2; $running = $response.StatusCode -eq 200 } catch {}
+if (-not $running) {
+    $logDir = Join-Path $projectRoot '.local'
+    New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+    $logOut = Join-Path $logDir 'profile-agent.stdout.log'
+    $logErr = Join-Path $logDir 'profile-agent.stderr.log'
+    Start-Process -FilePath $nodePath -ArgumentList @('scripts/start-pipeline.mjs') -WorkingDirectory $projectRoot -WindowStyle Hidden -RedirectStandardOutput $logOut -RedirectStandardError $logErr | Out-Null
+    for ($attempt = 0; $attempt -lt 80; $attempt++) {
+        Start-Sleep -Milliseconds 500
+        try { $response = Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 2; if ($response.StatusCode -eq 200) { $running = $true; break } } catch {}
     }
 }
-$linkFile = Join-Path $projectRoot ".local\web-access-$port.txt"
-$listener = New-Object System.Net.Sockets.TcpClient
-try {
-    $connected = $listener.ConnectAsync('127.0.0.1', $port).Wait(500) -and $listener.Connected
-} catch { $connected = $false } finally { $listener.Dispose() }
-if ($connected) {
-    if (-not (Test-Path -LiteralPath $linkFile)) { throw "Port $port is already in use. Stop that process before starting Profile Agent." }
-    $existingLink = (Get-Content -LiteralPath $linkFile -Raw).Trim()
-    if (-not $existingLink.StartsWith("http://127.0.0.1:$port/?access=")) { throw 'The saved local access link is invalid.' }
-    $response = Invoke-WebRequest -Uri $existingLink -UseBasicParsing -MaximumRedirection 0 -TimeoutSec 3 -ErrorAction SilentlyContinue
-    $valid = $response -and $response.StatusCode -eq 302
-    if (-not $valid) { throw "Port $port is in use, but the Profile Agent access link is stale. Stop that process and retry." }
-    Write-Host "Career Scout Profile Agent website: $existingLink"
-    if (-not $NoBrowser) { Start-Process -FilePath 'rundll32.exe' -ArgumentList @('url.dll,FileProtocolHandler', $existingLink) -WindowStyle Hidden }
-    return
-}
-$nodePath = Get-Command node -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -First 1
-if (-not $nodePath) {
-    $nodePath = Join-Path $env:USERPROFILE 'job_search\.local\tools\node-x64\node-v22.14.0-win-x64\node.exe'
-}
-if (-not (Test-Path -LiteralPath $nodePath)) { throw 'Install Node.js 22.13 or newer, then run this launcher again.' }
-Push-Location -LiteralPath $projectRoot
-try {
-    if ($NoBrowser) { & $nodePath --env-file-if-exists=.env.local src/web-server.mjs --no-browser }
-    else { & $nodePath --env-file-if-exists=.env.local src/web-server.mjs }
-} finally { Pop-Location }
+if (-not $running) { throw "Profile Agent did not start. Check $projectRoot\.local\profile-agent.stderr.log" }
+Write-Host "Profile Agent website: $url"
+if (-not $NoBrowser) { Start-Process -FilePath 'rundll32.exe' -ArgumentList @('url.dll,FileProtocolHandler', $url) -WindowStyle Hidden }
