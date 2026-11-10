@@ -1,5 +1,9 @@
 # Standalone Profile Agent context
 
+## Recent two-digit date convention (November 9, 2026)
+
+The user clarified that `Jun 24` means June 2024. The active fork now interprets recent source dates written as `Month YY` using 2000 + YY when that year is no later than the current year. Source facts and résumé text stay literal; only the duration projection uses the expanded year and labels that interpretation. Future or older ambiguous suffixes still require explicit confirmation. A read-only calculation against the existing main Career Scout profile now reports all eight displayed employment roles as calculable, with no profile write. The updated duration tests, TypeScript check and hosted build passed.
+
 ## Two-digit employment dates (November 9, 2026)
 
 The user reported that “Experience gained” now showed “Unable to calculate” for dates such as `Sep 24`. Both main Career Scout and this fork have the same strict duration code. A read-only aggregate check of the main local profile found eight roles with short years and no calculable durations; its four older approved full-year employment assertions have withdrawn source evidence, so the current evidence guardrail cannot reuse them. The local fork profile was empty. No private resume text was printed or changed.
@@ -12,7 +16,7 @@ The user asked for a third-party link where their teacher can upload a resume an
 
 The hosted deployment uses the existing Supabase project and configured Gemini/Pinecone providers. It executes Matcher, Tailor, Critic and application package storage within the hosted Worker because the local Python pipeline cannot run on Cloudflare Workers. It reuses the checked-in agent prompt files and current approved-profile loader, and stores bounded runs in the owner-scoped profile state. Hosted application requests await the agent chain to completion, avoiding a short background-worker lifetime. The local launcher still uses the Python pipeline when configured. Public deployment succeeded, and an anonymous HTTPS request to the final link returned the expected ChatGPT sign-in redirect. A signed-in teacher resume-to-package run has not yet been observed, so do not describe that end-to-end path as live-provider verified.
 
-The current hosted source was pushed to the Sites source repository at commit `dbd608deeac27279e5f7ec22dacda12b2a3af9d7` and deployed as version 3. The public GitHub repository keeps the same application source under `career-scout-app/`; the Sites source checkout and package remain ignored under `.local/`.
+The current hosted source was pushed to the Sites source repository at commit `4cd6609d495a4df41484b6dcd2092289452c69b3` and deployed as version 4. The public GitHub repository keeps the same application source under `career-scout-app/`; the Sites source checkout and package remain ignored under `.local/`.
 
 ## Full Career Scout fork (November 9, 2026)
 

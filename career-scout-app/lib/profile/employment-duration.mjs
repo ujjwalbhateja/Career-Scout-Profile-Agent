@@ -29,7 +29,15 @@ function parseDate(raw) {
   if (match) {
     const month = months.findIndex(name => name.startsWith(match[1].toLowerCase().slice(0, 3))) + 1;
     const day = match[2] ? Number(match[2]) : null;
-    if (match[3].length === 2) return day == null ? {month, yearSuffix: Number(match[3]), precision: 'month', shortYear: true, raw: value} : null;
+    if (match[3].length === 2) {
+      if(day != null)return null;
+      const suffix=Number(match[3]),year=2000+suffix;
+      // The user's résumé convention: a recent Month YY is in the 2000s.
+      // Future suffixes still require explicit confirmation rather than a pivot to the 1900s.
+      return year<=new Date().getUTCFullYear()
+        ? {year,month,day:null,precision:'month',raw:value,shortYearResolved:true}
+        : {month,yearSuffix:suffix,precision:'month',shortYear:true,raw:value};
+    }
     const year = Number(match[3]);
     return validDate(year, month, day ?? 1) ? {year, month, day, precision: day == null ? 'month' : 'day', raw: value} : null;
   }
@@ -197,7 +205,8 @@ function unavailable(reason) {
 
 /**
  * Section 1 only: elapsed employment date differences, without inclusive months.
- * Short years require an approved same-role, same-source full-year assertion.
+ * Recent Month YY values use the user's 20xx convention; older or future
+ * suffixes require a source-bound approval or explicit owner confirmation.
  * This pure projection never changes dates, approvals, or other review defaults.
  * @param {any} stateOrRecords A profile state, or employment review records.
  * @param {{asOf?:string|null,documents?:any[],facts?:any[],approvals?:any[]}} [options]
@@ -234,7 +243,7 @@ export function buildEmploymentDurations(stateOrRecords, {asOf, documents = [], 
       const difference = span(interval.start, interval.end, interval.precision);
       duration = {...described(difference.months, difference.residualDays), status: 'calculated', precision: interval.precision,
         start: iso(interval.start, interval.precision), end: iso(interval.end, interval.precision), usesAsOf,
-        asOf: usesAsOf ? asOf : null, resolvedFromFactRefs, confirmation, independentlyVerified: false,
+        asOf: usesAsOf ? asOf : null, resolvedFromFactRefs, confirmation, interpretedShortYear:!!(start.shortYearResolved||end.shortYearResolved), independentlyVerified: false,
         ...(difference.totalDays == null ? {} : {totalDays: difference.totalDays})};
       intervals.push(interval);
     }

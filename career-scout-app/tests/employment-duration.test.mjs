@@ -25,7 +25,7 @@ function fixture() {
   return {state, role};
 }
 
-test('short-source employment periods use matching approved years and elapsed-month differences', () => {
+test('recent short-source employment periods use 20xx years and elapsed-month differences', () => {
   const {state, role} = fixture();
   role('Analytics Manager', 'Sep 24', 'Pres.', {approvedInterval: ['September 2024', 'present']});
   role('Analytics Associate', 'Oct 20', 'Aug 24', {approvedInterval: ['October 2020', 'August 2024']});
@@ -41,55 +41,65 @@ test('short-source employment periods use matching approved years and elapsed-mo
   assert.equal(result.roles[0].duration.end, '2026-10');
   assert.equal(result.roles[0].duration.asOf, '2026-10-31');
   assert.equal(result.roles[0].duration.independentlyVerified, false);
+  assert.equal(result.roles[0].duration.interpretedShortYear,true);
   assert.deepEqual(state, before);
 });
 
+test('June 24 is June 2024 for duration arithmetic while the source stays literal', () => {
+  const {state,role}=fixture();role('Analyst','June 24','July 24');
+  const result=buildEmploymentDurations(state,{asOf:'2026-11-09'});
+  assert.equal(result.roles[0].duration.start,'2024-06');
+  assert.equal(result.roles[0].duration.end,'2024-07');
+  assert.equal(result.roles[0].duration.label,'1 month');
+  assert.equal(buildFactReview(state).employment[0].startDate.value,'June 24');
+});
+
 test('a user can explicitly confirm full years for a source-bound short-date role', () => {
-  const {state,role}=fixture();role('Analytics Associate','Oct 20','Aug 24');
+  const {state,role}=fixture();role('Analytics Associate','Oct 68','Aug 72');
   const record=buildFactReview(state).employment[0];
   assert.equal(buildEmploymentDurations(state).roles[0].duration.reason,'short_year_requires_approved_full_year');
-  assert.throws(()=>confirmEmploymentDates(state,{recordId:record.id,startYear:'2021',endYear:'2024'},'owner-1'),/matching the last two digits/);
+  assert.throws(()=>confirmEmploymentDates(state,{recordId:record.id,startYear:'1969',endYear:'1972'},'owner-1'),/matching the last two digits/);
   assert.equal(state.employmentDateConfirmations,undefined);
-  const receipt=confirmEmploymentDates(state,{recordId:record.id,startYear:'2020',endYear:'2024'},'owner-1');
+  const receipt=confirmEmploymentDates(state,{recordId:record.id,startYear:'1968',endYear:'1972'},'owner-1');
   const calculated=buildEmploymentDurations(state);
   assert.equal(receipt.kind,'employment_dates_confirmed');
   assert.equal(calculated.roles[0].duration.status,'calculated');
   assert.equal(calculated.roles[0].duration.label,'3 years 10 months');
   assert.equal(calculated.roles[0].duration.confirmation.id,receipt.confirmationId);
-  assert.equal(record.startDate.value,'Oct 20');
+  assert.equal(record.startDate.value,'Oct 68');
   state.documents[0].deleted=true;
   assert.equal(buildEmploymentDurations(state).roles[0].duration.status,'unavailable');
 });
 
 test('ongoing short-date role uses a confirmed start year and an explicit review date', () => {
-  const {state,role}=fixture();role('Analytics Manager','Sep 24','Pres.');
+  const {state,role}=fixture();role('Analytics Manager','Sep 68','Pres.');
   const record=buildFactReview(state).employment[0];
-  confirmEmploymentDates(state,{recordId:record.id,startYear:'2024'},'owner-1');
-  const calculated=buildEmploymentDurations(state,{asOf:'2026-11-09'}).roles[0].duration;
+  confirmEmploymentDates(state,{recordId:record.id,startYear:'1968'},'owner-1');
+  const calculated=buildEmploymentDurations(state,{asOf:'1970-11-09'}).roles[0].duration;
   assert.equal(calculated.label,'2 years 2 months');
   assert.equal(calculated.usesAsOf,true);
 });
 
 test('confirmation asks only for the short year when the other source date is complete', () => {
-  const {state,role}=fixture();role('Analyst','March 2018','Jul 18');
+  const {state,role}=fixture();role('Analyst','March 1968','Jul 68');
   const record=buildFactReview(state).employment[0];
-  confirmEmploymentDates(state,{recordId:record.id,endYear:'2018'},'owner-1');
+  confirmEmploymentDates(state,{recordId:record.id,endYear:'1968'},'owner-1');
   assert.equal(buildEmploymentDurations(state).roles[0].duration.label,'4 months');
 });
 
 test('Profile saves and reads back a date confirmation for the authenticated owner', async () => {
-  const {state,role}=fixture();role('Analyst','Mar 18','Jul 18');
+  const {state,role}=fixture();role('Analyst','Mar 68','Jul 68');
   const recordId=buildFactReview(state).employment[0].id;
   let saved={revision:7,state};
   const service=new ProfileService({},'owner-1');
   service.memory={load:async()=>structuredClone(saved),save:async(revision,next)=>{
     assert.equal(revision,saved.revision);saved={revision:revision+1,state:structuredClone(next)};return structuredClone(saved);
   }};
-  const result=await service.action({action:'confirmEmploymentDates',revision:7,recordId,startYear:'2018',endYear:'2018'});
+  const result=await service.action({action:'confirmEmploymentDates',revision:7,recordId,startYear:'1968',endYear:'1968'});
   assert.equal(result.result.storageVerified,true);
   assert.equal(result.state.employmentDateConfirmations[0].actor,'owner-1');
   assert.equal(buildEmploymentDurations(result.state).roles[0].duration.label,'4 months');
-  await assert.rejects(service.action({action:'confirmEmploymentDates',revision:7,recordId,startYear:'2018',endYear:'2018'}),/Reload before continuing/);
+  await assert.rejects(service.action({action:'confirmEmploymentDates',revision:7,recordId,startYear:'1968',endYear:'1968'}),/Reload before continuing/);
 });
 
 test('a projection with full source years does not require approval or change existing inclusive review defaults', () => {
@@ -175,8 +185,8 @@ test('records overload uses the same evidence and approval checks without mutati
 });
 
 test('a broad legacy assertion with multiple stints cannot resolve an unassociated short-date interval', () => {
-  const {state, role} = fixture(); role('Analyst', 'Mar 18', 'Jul 18', {approvedInterval: ['March 2018', 'July 2018']});
-  state.facts.at(-1).statement += ' A different stint ran from March 1918 to July 1918.';
+  const {state, role} = fixture(); role('Analyst', 'Mar 68', 'Jul 68', {approvedInterval: ['March 1968', 'July 1968']});
+  state.facts.at(-1).statement += ' A different stint ran from March 1868 to July 1868.';
   const result = buildEmploymentDurations(state);
   assert.equal(result.roles[0].duration.status, 'unavailable');
   assert.equal(result.roles[0].duration.reason, 'short_year_requires_approved_full_year');
@@ -184,15 +194,15 @@ test('a broad legacy assertion with multiple stints cannot resolve an unassociat
 
 test('identical titles and short periods in a shared segment require the specific quoted record span', () => {
   const {state, role} = fixture();
-  const firstScope = role('Analyst', 'Sep 24', 'Jan 25', {approvedInterval: ['September 2024', 'January 2025']});
-  const firstLine = 'Example One | Analyst | Sep 24 - Jan 25', secondLine = 'Example Two | Analyst | Sep 24 - Jan 25';
+  const firstScope = role('Analyst', 'Sep 68', 'Jan 69', {approvedInterval: ['September 1968', 'January 1969']});
+  const firstLine = 'Example One | Analyst | Sep 68 - Jan 69', secondLine = 'Example Two | Analyst | Sep 68 - Jan 69';
   state.documents[0].segments[0].text = firstLine + '\n' + secondLine;
   for (const fact of state.facts) fact.evidence[0].quote = firstLine;
   const approved = state.facts.at(-1);
   approved.scope = 'Example One';
-  approved.statement = 'Analyst at Example One from September 2024 to January 2025.';
-  const secondScope = 'Example Two | Analyst | Sep 24 | Jan 25';
-  for (const [field, statement] of [['job_title', 'Analyst'], ['start_date', 'Sep 24'], ['end_date', 'Jan 25']])
+  approved.statement = 'Analyst at Example One from September 1968 to January 1969.';
+  const secondScope = 'Example Two | Analyst | Sep 68 | Jan 69';
+  for (const [field, statement] of [['job_title', 'Analyst'], ['start_date', 'Sep 68'], ['end_date', 'Jan 69']])
     state.facts.push({id: `f${state.facts.length + 1}`, version: 1, category: 'employment', field, scope: secondScope, statement, approval: 'pending',
       evidence: [{documentId: 'resume1', documentVersion: 1, segmentId: 'p1', quote: secondLine}]});
   const result = buildEmploymentDurations(state);
@@ -203,16 +213,16 @@ test('identical titles and short periods in a shared segment require the specifi
 });
 
 test('a broad shared evidence quote cannot override a different explicitly sourced employer', () => {
-  const {state, role} = fixture(); role('Analyst', 'Sep 24', 'Jan 25', {approvedInterval: ['September 2024', 'January 2025']});
-  const firstLine = 'Example One | Analyst | Sep 24 - Jan 25', secondLine = 'Example Two | Analyst | Sep 24 - Jan 25';
+  const {state, role} = fixture(); role('Analyst', 'Sep 68', 'Jan 69', {approvedInterval: ['September 1968', 'January 1969']});
+  const firstLine = 'Example One | Analyst | Sep 68 - Jan 69', secondLine = 'Example Two | Analyst | Sep 68 - Jan 69';
   const broadQuote = firstLine + '\n' + secondLine;
   state.documents[0].segments[0].text = broadQuote;
   for (const fact of state.facts) fact.evidence[0].quote = broadQuote;
   const approved = state.facts.at(-1);
   approved.scope = 'Example One';
-  approved.statement = 'Analyst at Example One from September 2024 to January 2025.';
-  const scope = 'Example Two | Analyst | Sep 24 | Jan 25';
-  for (const [field, statement] of [['company_name', 'Example Two'], ['job_title', 'Analyst'], ['start_date', 'Sep 24'], ['end_date', 'Jan 25']])
+  approved.statement = 'Analyst at Example One from September 1968 to January 1969.';
+  const scope = 'Example Two | Analyst | Sep 68 | Jan 69';
+  for (const [field, statement] of [['company_name', 'Example Two'], ['job_title', 'Analyst'], ['start_date', 'Sep 68'], ['end_date', 'Jan 69']])
     state.facts.push({id: `f${state.facts.length + 1}`, version: 1, category: 'employment', field, scope, statement, approval: 'pending',
       evidence: [{documentId: 'resume1', documentVersion: 1, segmentId: 'p1', quote: secondLine}]});
   const result = buildEmploymentDurations(state);

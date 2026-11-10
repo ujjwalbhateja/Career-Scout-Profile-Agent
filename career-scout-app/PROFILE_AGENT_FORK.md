@@ -16,6 +16,7 @@ Source: `C:\Users\ujjwa\job_search` at commit `dd95addd8811f960a7235d70f747193bf
 - JD link intake retains content inside ASP.NET `<form>` wrappers and recognizes `jobdesc` section IDs. The Hirebridge posting at `https://recruit.hirebridge.com/v3/Jobs/JobDetails.aspx?cid=8487&jid=354586` returned HTTP 200 but previously parsed only the title. It now yields a full description and source segments.
 - The experience review shows a specific reason when employment duration cannot be calculated from source-backed dates. It does not guess missing or ambiguous dates.
 - Two-digit employment years now have a role-specific confirmation form in Facts. The signed-in user enters full years matching the résumé suffix; Profile saves and reads back that explicit confirmation. Duration calculation uses it only while the original role/date source still matches. The résumé and original fact approvals are unchanged. The displayed result identifies user-confirmed years and does not claim independent verification.
+- The user clarified that recent `Month YY` dates use 20xx years: for example, `Jun 24` is June 2024. The duration display now calculates these directly from the source text without prompting. Future or older ambiguous suffixes still use the confirmation form. Source dates and approvals remain unchanged.
 
 ## Current boundaries
 

@@ -25,8 +25,8 @@ function fixture() {
 const titleOf=role=>typeof role.jobTitle==='string'?role.jobTitle:role.jobTitle?.value;
 const roleFor=(result,title)=>{const role=result.roles.find(value=>titleOf(value)===title);assert.ok(role,`Missing synthetic role ${title}`);return role;};
 
-test('short years never acquire a century from a pivot or the supplied current date alone',()=>{
-  for(const [start,end] of [['Sep 24','Jan 25'],['Jan 68','Jan 69'],['Jan 99','Jan 00']]){
+test('older and future short years never acquire a century from a pivot or the supplied current date alone',()=>{
+  for(const [start,end] of [['Sep 68','Jan 69'],['Jan 68','Jan 69'],['Jan 99','Jan 00']]){
     const {state,job}=fixture();job('Example Employer','Senior Analyst',start,end);
     const result=buildEmploymentDurations(state,{asOf:'2026-10-31'});
     assert.equal(roleFor(result,'Senior Analyst').duration.status,'unavailable');
@@ -35,8 +35,8 @@ test('short years never acquire a century from a pivot or the supplied current d
 });
 
 test('same-role source-bound approved full years resolve raw short dates without changing their approval or source',()=>{
-  const {state,job,confirm}=fixture(),record=job('Example Employer','Senior Analyst','Sep 24','Jan 25');
-  const approved=confirm(record,'September 2024','January 2025'),before=structuredClone(state);
+  const {state,job,confirm}=fixture(),record=job('Example Employer','Senior Analyst','Sep 68','Jan 69');
+  const approved=confirm(record,'September 1968','January 1969'),before=structuredClone(state);
   const result=buildEmploymentDurations(state),duration=roleFor(result,'Senior Analyst').duration;
   assert.equal(duration.status,'calculated');assert.equal(duration.months,4);assert.equal(duration.years,0);assert.equal(duration.remainingMonths,4);
   assert.ok(duration.resolvedFromFactRefs.some(ref=>ref.id===approved.id&&ref.version===approved.version&&ref.approvalRef===approved.approvalRef));
@@ -45,31 +45,31 @@ test('same-role source-bound approved full years resolve raw short dates without
 
 test('pending, withdrawn, conflicted or improperly receipted full-year assertions cannot resolve a short year',()=>{
   for(const options of [{approval:'pending'},{approval:'withdrawn'},{lifecycle:'superseded'},{conflict:true},{recordApproval:false},{version:2,approvalVersion:1}]){
-    const {state,job,confirm}=fixture(),record=job('Example Employer','Senior Analyst','Sep 24','Jan 25');
-    confirm(record,'September 2024','January 2025',options);
+    const {state,job,confirm}=fixture(),record=job('Example Employer','Senior Analyst','Sep 68','Jan 69');
+    confirm(record,'September 1968','January 1969',options);
     assert.equal(roleFor(buildEmploymentDurations(state),'Senior Analyst').duration.status,'unavailable',JSON.stringify(options));
   }
 });
 
 test('a valid approval cannot resolve a different role even when the source paragraph is shared',()=>{
   for(const differentTitle of ['Manager','Senior Analyst']){
-    const {state,document,fact}=fixture(),source={id:'resume.shared',text:`Example Employer | Analyst | Sep 24 - Jan 25\nExample Employer | ${differentTitle} | Sep 24 - Jan 25`};
+    const {state,document,fact}=fixture(),source={id:'resume.shared',text:`Example Employer | Analyst | Sep 68 - Jan 69\nExample Employer | ${differentTitle} | Sep 68 - Jan 69`};
     document.segments.push(source);
-    for(const [field,value] of [['company_name','Example Employer'],['job_title','Analyst'],['start_date','Sep 24'],['end_date','Jan 25']])fact(field,'Example Employer | Analyst | Sep 24 | Jan 25',value,source);
-    fact(differentTitle,'Example Employer',`${differentTitle} at Example Employer from September 2024 to January 2025.`,source,{approval:'approved'});
+    for(const [field,value] of [['company_name','Example Employer'],['job_title','Analyst'],['start_date','Sep 68'],['end_date','Jan 69']])fact(field,'Example Employer | Analyst | Sep 68 | Jan 69',value,source);
+    fact(differentTitle,'Example Employer',`${differentTitle} at Example Employer from September 1968 to January 1969.`,source,{approval:'approved'});
     assert.equal(roleFor(buildEmploymentDurations(state),'Analyst').duration.status,'unavailable',differentTitle);
   }
 });
 
 test('identical titles and short dates at two employers cannot reuse the other employer approval in a shared paragraph',()=>{
   const {state,document,fact}=fixture();
-  const first='Example One | Analyst | Sep 24 - Jan 25',second='Example Two | Analyst | Sep 24 - Jan 25';
+  const first='Example One | Analyst | Sep 68 - Jan 69',second='Example Two | Analyst | Sep 68 - Jan 69';
   const source={id:'resume.shared-employers',text:first+'\n'+second};document.segments.push(source);
   for(const [company,quote] of [['Example One',first],['Example Two',second]]){
-    for(const [field,value] of [['company_name',company],['job_title','Analyst'],['start_date','Sep 24'],['end_date','Jan 25']])
-      fact(field,[company,'Analyst','Sep 24','Jan 25'].join(' | '),value,source,{quote});
+    for(const [field,value] of [['company_name',company],['job_title','Analyst'],['start_date','Sep 68'],['end_date','Jan 69']])
+      fact(field,[company,'Analyst','Sep 68','Jan 69'].join(' | '),value,source,{quote});
   }
-  const approved=fact('Analyst','Example One','Analyst at Example One from September 2024 to January 2025.',source,{quote:first,approval:'approved'});
+  const approved=fact('Analyst','Example One','Analyst at Example One from September 1968 to January 1969.',source,{quote:first,approval:'approved'});
   const before=structuredClone(state),result=buildEmploymentDurations(state);
   const own=result.roles.find(role=>role.scope.startsWith('Example One |'));
   const other=result.roles.find(role=>role.scope.startsWith('Example Two |'));
@@ -82,23 +82,23 @@ test('identical titles and short dates at two employers cannot reuse the other e
 
 test('a year confirmation from a different physical source, a changed source version or a nonexistent quote cannot resolve dates',()=>{
   for(const mutation of ['different_source','stale_version','invalid_quote']){
-    const {state,job,confirm,segment}=fixture(),record=job('Example Employer','Senior Analyst','Sep 24','Jan 25');
-    const approved=confirm(record,'September 2024','January 2025');
+    const {state,job,confirm,segment}=fixture(),record=job('Example Employer','Senior Analyst','Sep 68','Jan 69');
+    const approved=confirm(record,'September 1968','January 1969');
     if(mutation==='different_source'){
-      const unrelated=segment('A different record mentions Senior Analyst in Sep 24 - Jan 25.');
+      const unrelated=segment('A different record mentions Senior Analyst in Sep 68 - Jan 69.');
       approved.field='period_confirmation';approved.scope='Another employment record';approved.evidence=[{documentId:'resume',documentVersion:1,segmentId:unrelated.id,quote:unrelated.text}];
     }else if(mutation==='stale_version')approved.evidence[0].documentVersion=0;
-    else approved.evidence[0].quote='Senior Analyst September 2024 - January 2025';
+    else approved.evidence[0].quote='Senior Analyst September 1968 - January 1969';
     assert.equal(roleFor(buildEmploymentDurations(state),'Senior Analyst').duration.status,'unavailable',mutation);
   }
 });
 
 test('conflicting approved centuries or a mismatching full interval remain unresolved',()=>{
   for(const kind of ['multiple_centuries','different_end_month']){
-    const {state,job,confirm}=fixture(),record=job('Example Employer','Senior Analyst','Sep 24','Jan 25');
+    const {state,job,confirm}=fixture(),record=job('Example Employer','Senior Analyst','Sep 68','Jan 69');
     if(kind==='multiple_centuries'){
-      confirm(record,'September 2024','January 2025');confirm(record,'September 1924','January 1925');
-    }else confirm(record,'September 2024','February 2025');
+      confirm(record,'September 1968','January 1969');confirm(record,'September 1868','January 1869');
+    }else confirm(record,'September 1968','February 1969');
     assert.equal(roleFor(buildEmploymentDurations(state),'Senior Analyst').duration.status,'unavailable',kind);
   }
 });
@@ -129,7 +129,7 @@ test('ongoing work requires the supplied review date and exposes a partial total
   assert.equal(roleFor(buildEmploymentDurations(state),'Senior Analyst').duration.status,'unavailable');
   const complete=buildEmploymentDurations(state,{asOf:'2026-10-31'});
   assert.equal(roleFor(complete,'Senior Analyst').duration.months,25);assert.equal(complete.total.months,25);assert.equal(complete.total.status,'calculated');
-  job('Previous Employer','Research Associate','Jan 18','May 20');
+  job('Previous Employer','Research Associate','Jan 68','May 70');
   const partial=buildEmploymentDurations(state,{asOf:'2026-10-31'});
   assert.equal(partial.total.status,'partial');assert.equal(partial.total.months,25);assert.equal(partial.total.includedRoleIds.length,1);assert.equal(partial.total.excludedRoleIds.length,1);
 });
