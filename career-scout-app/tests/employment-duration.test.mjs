@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildEmploymentDurations} from '../lib/profile/employment-duration.mjs';
+import {buildEmploymentDurations,confirmEmploymentDates} from '../lib/profile/employment-duration.mjs';
 import {buildFactReview} from '../lib/profile/fact-review.mjs';
+import {ProfileService} from '../lib/profile/service.mjs';
 
 function fixture() {
   const state = {documents: [], facts: [], approvals: []};
@@ -41,6 +42,54 @@ test('short-source employment periods use matching approved years and elapsed-mo
   assert.equal(result.roles[0].duration.asOf, '2026-10-31');
   assert.equal(result.roles[0].duration.independentlyVerified, false);
   assert.deepEqual(state, before);
+});
+
+test('a user can explicitly confirm full years for a source-bound short-date role', () => {
+  const {state,role}=fixture();role('Analytics Associate','Oct 20','Aug 24');
+  const record=buildFactReview(state).employment[0];
+  assert.equal(buildEmploymentDurations(state).roles[0].duration.reason,'short_year_requires_approved_full_year');
+  assert.throws(()=>confirmEmploymentDates(state,{recordId:record.id,startYear:'2021',endYear:'2024'},'owner-1'),/matching the last two digits/);
+  assert.equal(state.employmentDateConfirmations,undefined);
+  const receipt=confirmEmploymentDates(state,{recordId:record.id,startYear:'2020',endYear:'2024'},'owner-1');
+  const calculated=buildEmploymentDurations(state);
+  assert.equal(receipt.kind,'employment_dates_confirmed');
+  assert.equal(calculated.roles[0].duration.status,'calculated');
+  assert.equal(calculated.roles[0].duration.label,'3 years 10 months');
+  assert.equal(calculated.roles[0].duration.confirmation.id,receipt.confirmationId);
+  assert.equal(record.startDate.value,'Oct 20');
+  state.documents[0].deleted=true;
+  assert.equal(buildEmploymentDurations(state).roles[0].duration.status,'unavailable');
+});
+
+test('ongoing short-date role uses a confirmed start year and an explicit review date', () => {
+  const {state,role}=fixture();role('Analytics Manager','Sep 24','Pres.');
+  const record=buildFactReview(state).employment[0];
+  confirmEmploymentDates(state,{recordId:record.id,startYear:'2024'},'owner-1');
+  const calculated=buildEmploymentDurations(state,{asOf:'2026-11-09'}).roles[0].duration;
+  assert.equal(calculated.label,'2 years 2 months');
+  assert.equal(calculated.usesAsOf,true);
+});
+
+test('confirmation asks only for the short year when the other source date is complete', () => {
+  const {state,role}=fixture();role('Analyst','March 2018','Jul 18');
+  const record=buildFactReview(state).employment[0];
+  confirmEmploymentDates(state,{recordId:record.id,endYear:'2018'},'owner-1');
+  assert.equal(buildEmploymentDurations(state).roles[0].duration.label,'4 months');
+});
+
+test('Profile saves and reads back a date confirmation for the authenticated owner', async () => {
+  const {state,role}=fixture();role('Analyst','Mar 18','Jul 18');
+  const recordId=buildFactReview(state).employment[0].id;
+  let saved={revision:7,state};
+  const service=new ProfileService({},'owner-1');
+  service.memory={load:async()=>structuredClone(saved),save:async(revision,next)=>{
+    assert.equal(revision,saved.revision);saved={revision:revision+1,state:structuredClone(next)};return structuredClone(saved);
+  }};
+  const result=await service.action({action:'confirmEmploymentDates',revision:7,recordId,startYear:'2018',endYear:'2018'});
+  assert.equal(result.result.storageVerified,true);
+  assert.equal(result.state.employmentDateConfirmations[0].actor,'owner-1');
+  assert.equal(buildEmploymentDurations(result.state).roles[0].duration.label,'4 months');
+  await assert.rejects(service.action({action:'confirmEmploymentDates',revision:7,recordId,startYear:'2018',endYear:'2018'}),/Reload before continuing/);
 });
 
 test('a projection with full source years does not require approval or change existing inclusive review defaults', () => {

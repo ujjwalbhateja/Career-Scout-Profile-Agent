@@ -51,7 +51,7 @@ export async function POST(request:Request){
       let body;try{body=JSON.parse(new TextDecoder().decode(bytes));}catch{throw new ProfileError('Use valid JSON.');}
       if(!body||Array.isArray(body)||typeof body!=='object')throw new ProfileError('Invalid request.');
       if('owner_id' in body||'owner' in body||'namespace' in body)throw new ProfileError('Ownership is determined by your signed-in account.',403);
-      allowBackground=!['answer','analyzeAnswer','reviewExperience','reviewBuilder','extractSection1'].includes(body.action);
+      allowBackground=!['answer','analyzeAnswer','reviewExperience','reviewBuilder','extractSection1','confirmEmploymentDates'].includes(body.action);
       result=await dispatchProfileOperation(profile,{body});
     }else throw new ProfileError('Use JSON or a document upload.',415);
     if(allowBackground&&result.result?.kind!=='final_profile_needs_review'&&result.state?.outbox.some((event:{kind:string;status:string})=>event.kind==='reindex'&&event.status==='pending'))scheduleProfileWork(()=>profile.drainBackground());

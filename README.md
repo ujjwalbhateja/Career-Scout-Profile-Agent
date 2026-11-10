@@ -8,6 +8,8 @@ The original standalone Profile library and its earlier webpage remain at the re
 
 Open [Career Scout](https://career-scout.ujjwalbhateja.chatgpt.site). The public Site asks each visitor to sign in with ChatGPT, then gives them their own private profile and application history. The hosted application uses the existing Supabase project and the configured Gemini/Pinecone providers. Its Matcher, Tailor and Critic run in the hosted Worker; the local launcher uses the Python pipeline. An anonymous HTTPS request was verified to redirect to ChatGPT sign-in. A complete signed-in teacher run has not yet been observed.
 
+For résumé dates written with two-digit years, Facts now asks the signed-in user to confirm each affected role's full year. Experience gained is then calculated from that explicit confirmation while the original source still matches; the résumé text is not rewritten.
+
 ## Run on Windows
 
 1. Install Node.js 22.13 or newer and Python with `uv`.

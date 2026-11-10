@@ -1,4 +1,5 @@
 import {buildFactReview} from './fact-review.mjs';
+import {ProfileError,id,now} from './domain.mjs';
 
 // A display-only date difference. This never changes source facts or approvals.
 const list = value => Array.isArray(value) ? value : [];
@@ -66,6 +67,35 @@ function matchesDate(raw, full) {
   if (!raw || !full || full.ongoing || full.shortYear || raw.precision !== full.precision || raw.month !== full.month || raw.day !== full.day && !(raw.day == null && full.day == null)) return false;
   return raw.shortYear ? full.year % 100 === raw.yearSuffix : raw.year === full.year;
 }
+function confirmationBasis(record) {
+  const refs = ['jobTitle','startDate','endDate'].flatMap(field => list(record[field]?.entries).flatMap(entry => list(entry.evidence).map(ref => [ref.documentId,ref.documentVersion||null,ref.segmentId,ref.quote])));
+  return JSON.stringify([record.id,record.companyName?.value||'',record.jobTitle?.value||'',record.startDate?.value||'',record.endDate?.value||'',refs]);
+}
+function confirmedYear(value, parsed, label) {
+  if (!parsed.shortYear) {
+    if (value != null && value !== '') throw new ProfileError('The '+label+' year is already written in full in your source.');
+    return parsed;
+  }
+  if (typeof value !== 'string' || !/^\d{4}$/.test(value) || Number(value)%100!==parsed.yearSuffix || !validDate(Number(value),parsed.month))
+    throw new ProfileError('Enter the four-digit '+label+' year matching the last two digits in your resume.');
+  return {...parsed,year:Number(value),shortYear:false,yearResolution:'user_confirmed'};
+}
+/** Explicit owner-scoped confirmation of a displayed role and the century of its source dates. */
+export function confirmEmploymentDates(state,{recordId,startYear,endYear},actor){
+  if(typeof recordId!=='string'||!recordId||recordId.length>500||typeof actor!=='string'||!actor)throw new ProfileError('Choose a current employment record.');
+  const record=buildFactReview(state).employment.find(row=>row.id===recordId);
+  if(!record)throw new ProfileError('The employment record changed. Reload before confirming its dates.',409);
+  const start=readCell(record.startDate,state),end=readCell(record.endDate,state);
+  if(start.reason||end.reason)throw new ProfileError('Review the source dates before confirming their full years.',409);
+  if(!start.shortYear&&!end.shortYear)throw new ProfileError('This role already has full source years.');
+  const fullStart=confirmedYear(startYear,start,'start'),fullEnd=end.ongoing?end:confirmedYear(endYear,end,'end');
+  if(end.ongoing&&endYear!=null&&endYear!=='')throw new ProfileError('An ongoing role has no end year to confirm.');
+  if(!end.ongoing&&fullStart.precision!==fullEnd.precision)throw new ProfileError('The two source dates have different precision.',409);
+  if(!end.ongoing&&position(fullEnd)<position(fullStart))throw new ProfileError('The confirmed end date precedes the start date.');
+  const confirmation={id:id('date_confirmation'),recordId,sourceBasis:confirmationBasis(record),startYear:start.shortYear?fullStart.year:null,endYear:end.shortYear?fullEnd.year:null,actor,at:now()};
+  state.employmentDateConfirmations=[...list(state.employmentDateConfirmations),confirmation].slice(-200);
+  return {kind:'employment_dates_confirmed',recordId,confirmationId:confirmation.id,at:confirmation.at,message:'Your full years are saved for this role. The resume dates remain unchanged.'};
+}
 function approvedRanges(statement) {
   const pattern = new RegExp(`(?<![\\d/.-])(${fullToken})\\s*(?:[-–—]|to|through|until)\\s*(${fullToken}|Present|Pres\\.?|Current|Currently|Ongoing|To date|Till date|Now)(?![a-z\\d/-]|\\.\\d)`, 'gi');
   return [...text(statement).matchAll(pattern)].map(match => ({start: parseDate(match[1]), end: parseDate(match[2])}));
@@ -111,6 +141,15 @@ function sameEmploymentSource(record, state, fact, keys) {
 }
 function resolveShortDates(record, state, start, end) {
   if (!start.shortYear && !end.shortYear) return {start, end, resolvedFromFactRefs: []};
+  const saved=list(state.employmentDateConfirmations).findLast(item=>item.recordId===record.id&&item.sourceBasis===confirmationBasis(record));
+  if(saved){
+    try{
+      const confirmedStart=confirmedYear(saved.startYear==null?null:String(saved.startYear),start,'start');
+      const confirmedEnd=end.ongoing?end:confirmedYear(saved.endYear==null?null:String(saved.endYear),end,'end');
+      if(!end.ongoing&&position(confirmedEnd)<position(confirmedStart))throw new ProfileError('Confirmed dates are reversed.');
+      return {start:confirmedStart,end:confirmedEnd,resolvedFromFactRefs:[],confirmation:{id:saved.id,at:saved.at}};
+    }catch{}
+  }
   const keys = roleSourceKeys(record, state), role = normalized(record.jobTitle?.value);
   if (!keys.size || !role) return {reason: 'short_year_requires_approved_full_year'};
   const candidates = [];
@@ -170,11 +209,11 @@ export function buildEmploymentDurations(stateOrRecords, {asOf, documents = [], 
   for (const record of records) {
     let start = readCell(record.startDate, state), end = readCell(record.endDate, state);
     let reason = record.associationStatus === 'requires_review' ? 'unresolved_record_association' : start.reason || end.reason;
-    let resolvedFromFactRefs = [];
+    let resolvedFromFactRefs = [],confirmation=null;
     if (!reason) {
       const resolved = resolveShortDates(record, state, start, end);
       reason = resolved.reason;
-      if (!reason) { start = resolved.start; end = resolved.end; resolvedFromFactRefs = resolved.resolvedFromFactRefs; }
+      if (!reason) { start = resolved.start; end = resolved.end; resolvedFromFactRefs = resolved.resolvedFromFactRefs; confirmation=resolved.confirmation||null; }
     }
     const usesAsOf = !reason && end.ongoing === true;
     if (!reason && start.ongoing) reason = 'invalid_start_date';
@@ -195,7 +234,7 @@ export function buildEmploymentDurations(stateOrRecords, {asOf, documents = [], 
       const difference = span(interval.start, interval.end, interval.precision);
       duration = {...described(difference.months, difference.residualDays), status: 'calculated', precision: interval.precision,
         start: iso(interval.start, interval.precision), end: iso(interval.end, interval.precision), usesAsOf,
-        asOf: usesAsOf ? asOf : null, resolvedFromFactRefs, independentlyVerified: false,
+        asOf: usesAsOf ? asOf : null, resolvedFromFactRefs, confirmation, independentlyVerified: false,
         ...(difference.totalDays == null ? {} : {totalDays: difference.totalDays})};
       intervals.push(interval);
     }

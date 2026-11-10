@@ -1,12 +1,18 @@
 # Standalone Profile Agent context
 
+## Two-digit employment dates (November 9, 2026)
+
+The user reported that “Experience gained” now showed “Unable to calculate” for dates such as `Sep 24`. Both main Career Scout and this fork have the same strict duration code. A read-only aggregate check of the main local profile found eight roles with short years and no calculable durations; its four older approved full-year employment assertions have withdrawn source evidence, so the current evidence guardrail cannot reuse them. The local fork profile was empty. No private resume text was printed or changed.
+
+The active fork now lets the signed-in user confirm four-digit years beside each affected role in Facts. Confirmation is bound to the exact current role, source date values and source references, saved in the owner's Supabase profile, and read back before acknowledging it. A changed or withdrawn source stops the confirmed years from being used. The UI labels these years as user confirmed, leaves the résumé untouched and rejects suffix mismatches or reversed dates. The duration and Profile action tests passed; TypeScript and hosted build passed. Main Career Scout's saved facts and separate website were not changed by this fork update.
+
 ## Public Career Scout teacher site (November 9, 2026)
 
 The user asked for a third-party link where their teacher can upload a resume and run the live Profile and application workflow. The active fork was published as a separate public Sites project at `https://career-scout.ujjwalbhateja.chatgpt.site`. The page title and logo remain Career Scout. Visitors sign in with ChatGPT; the server uses each Site user ID for private Supabase profile and application data. This Site is separate from the original Career Scout Site and the local `127.0.0.1` launcher.
 
 The hosted deployment uses the existing Supabase project and configured Gemini/Pinecone providers. It executes Matcher, Tailor, Critic and application package storage within the hosted Worker because the local Python pipeline cannot run on Cloudflare Workers. It reuses the checked-in agent prompt files and current approved-profile loader, and stores bounded runs in the owner-scoped profile state. Hosted application requests await the agent chain to completion, avoiding a short background-worker lifetime. The local launcher still uses the Python pipeline when configured. Public deployment succeeded, and an anonymous HTTPS request to the final link returned the expected ChatGPT sign-in redirect. A signed-in teacher resume-to-package run has not yet been observed, so do not describe that end-to-end path as live-provider verified.
 
-The hosted source was pushed to the Sites source repository at commit `6b9107d26b332f6aedc4f038d9e19f2186bf54b2` and saved as version 1. The public GitHub repository keeps the same application source under `career-scout-app/`; the Sites source checkout and package remain ignored under `.local/`.
+The current hosted source was pushed to the Sites source repository at commit `dbd608deeac27279e5f7ec22dacda12b2a3af9d7` and deployed as version 3. The public GitHub repository keeps the same application source under `career-scout-app/`; the Sites source checkout and package remain ignored under `.local/`.
 
 ## Full Career Scout fork (November 9, 2026)
 

@@ -15,9 +15,10 @@ Source: `C:\Users\ujjwa\job_search` at commit `dd95addd8811f960a7235d70f747193bf
 
 - JD link intake retains content inside ASP.NET `<form>` wrappers and recognizes `jobdesc` section IDs. The Hirebridge posting at `https://recruit.hirebridge.com/v3/Jobs/JobDetails.aspx?cid=8487&jid=354586` returned HTTP 200 but previously parsed only the title. It now yields a full description and source segments.
 - The experience review shows a specific reason when employment duration cannot be calculated from source-backed dates. It does not guess missing or ambiguous dates.
+- Two-digit employment years now have a role-specific confirmation form in Facts. The signed-in user enters full years matching the résumé suffix; Profile saves and reads back that explicit confirmation. Duration calculation uses it only while the original role/date source still matches. The résumé and original fact approvals are unchanged. The displayed result identifies user-confirmed years and does not claim independent verification.
 
 ## Current boundaries
 
 The inherited Tailor flow still prepares a tailored resume for an application package. It is retained because this fork was requested as Career Scout with only Scout removed. It is separate from the Career Buddy design in which InterviewBuddy uses the uploaded resume unchanged.
 
-This fork has not been connected to a live user resume or validated for hosted deployment. Provider settings are local and ignored by Git.
+The public fork is hosted at `https://career-scout.ujjwalbhateja.chatgpt.site`; visitors sign in with ChatGPT and their profile data is owner scoped. Hosted publishing and anonymous sign-in routing were verified. A signed-in teacher resume-to-application run remains unobserved.

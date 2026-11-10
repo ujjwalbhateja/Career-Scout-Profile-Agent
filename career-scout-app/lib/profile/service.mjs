@@ -6,6 +6,7 @@ import {extractDocument} from './extraction.mjs';
 import {groundFactProposals} from './fact-grounding.mjs';
 import {readJDLink,primaryJDSegments} from './link-intake.mjs';
 import {buildFactReview} from './fact-review.mjs';
+import {confirmEmploymentDates} from './employment-duration.mjs';
 import {buildConsolidatedProfile} from './consolidated.mjs';
 import {buildValidatedSearchProfile} from './search-profile.mjs';
 import {normalizeScoutContext} from '../workflow/scout-policy.mjs';
@@ -217,6 +218,7 @@ export class ProfileService{
     else if(action==='reviewBuilder')result=await applyBuilderReview(s,body,this.owner,{revision:record.revision});
     else if(action==='reviewExperience')result=await applyExperienceReview(s,body,this.owner,{revision:record.revision});
     else if(action==='correctFact')await correctFact(s,body);
+    else if(action==='confirmEmploymentDates')result=confirmEmploymentDates(s,body,this.owner);
     else if(action==='resolveConflict')resolveConflict(s,body.id);
     else if(action==='answer'){
       const answer=await addAnswer(s,body);
@@ -266,6 +268,11 @@ export class ProfileService{
     }else throw new ProfileError('Unknown Profile action.');
     const saved=await this.memory.save(record.revision,s);
     if(action==='reviewBuilder')return this.verifiedBuilderSave(saved,result,body);
+    if(action==='confirmEmploymentDates'){
+      const verified=await this.memory.load();
+      if(verified.revision<saved.revision||!verified.state.employmentDateConfirmations?.some(item=>item.id===result.confirmationId&&item.recordId===result.recordId&&item.actor===this.owner))throw new ProfileError('Could not verify your confirmed years in saved profile storage. Reload and try again.',409);
+      return {...verified,result:{...result,storageVerified:true}};
+    }
     return {...saved,result};
   }
   finalProfileResult(s){
