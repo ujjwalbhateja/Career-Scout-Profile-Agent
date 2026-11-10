@@ -11,6 +11,11 @@ const module={exports:{}};new Function('require','module','exports',output)(requ
 const Component=module.exports.default;
 const row={id:'row1',documentId:'jd1',fingerprint:'version1',proposedStatement:'Prepared risk reports',section:'experience',area:'Risk analytics',status:'pending',revisionText:'',draftVersion:0};
 const render=(groups,props={})=>renderToStaticMarkup(React.createElement(Component,{groups,disabled:false,onSubmit:async()=>({ok:true,message:'saved'}),...props}));
+test('empty Builder shows where a job-link questionnaire will appear',()=>{
+  const html=render([]);
+  assert.ok(html.includes('Role questionnaire'));
+  assert.ok(html.includes('No questionnaire has been prepared yet'));
+});
 test('rendered questionnaire separates roles and work/skill tables with the three requested decisions',()=>{
   const html=render(['Risk Manager','Portfolio Manager'].map((title,i)=>({title,documentId:'jd'+i,analysis:'complete',experience:[{...row,id:'work'+i}],skills:[{...row,id:'skill'+i,section:'skills',area:'programming_languages',proposedStatement:'Python'}]})));
   assert.equal((html.match(/<table /g)||[]).length,4);assert.ok(html.includes('Questionnaire: Risk Manager'));assert.ok(html.includes('Questionnaire: Portfolio Manager'));

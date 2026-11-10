@@ -67,6 +67,7 @@ export default function BuilderExpansion({groups,activeDocumentIds,disabled,onSu
     {group.analysis!=='complete'?<p>Analyze this job description before reviewing its questionnaire.</p>:<>{table(group.experience.filter(r=>!answered(r)),false)}{table(group.skills.filter(r=>!answered(r)),true)}</>}
   </section>;}
   return <div className="cw-experience-review" id="builder-questionnaires">
+    {!groups.length&&<section aria-label="Role questionnaire status"><h2>Role questionnaire</h2><p>No questionnaire has been prepared yet. Add a job description link to prepare its questions here.</p></section>}
     {current.map(role)}
     {!!previous.length&&<details className="cw-questionnaire-archive"><summary>Earlier role questionnaires ({previous.length}) · {pendingCount(previous)} unfinished items</summary>{previous.map(role)}</details>}
     {!!answeredCount&&<details className="cw-questionnaire-archive"><summary>Already answered ({answeredCount})</summary><p>Saved approvals and rejections are kept here. Somewhat revisions stay unfinished until their revised wording is approved.</p>{groups.map(group=>{

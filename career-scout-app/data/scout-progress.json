@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "revision": "2026-11-09.2",
+  "revision": "2026-11-09.3",
   "reviewedOn": "2026-11-09",
   "summary": "Profile Agent fork of Career Scout. Resume intake, factual review, optional JD questionnaires, memory and application preparation remain active. The Scout agent and job discovery flow are removed. Application preparation requires a user-supplied job. The task records below retain their imported Career Scout statuses and historical evidence; the active fork view excludes Scout-owned tasks without changing that history. Local validation passed; real-user and hosted validation remain separate.",
   "framework": {
@@ -3085,7 +3085,8 @@
       "blockers": [],
       "evidence": "2026-10-29: 152 existing backend tests and 15 new guided/link/dispatch cases passed. Ten guided workspace-component scenarios passed against synthetic ProfileService persistence; five Scout and eight diagram component regressions passed. One live synthetic Gemini request returned two valid proposed roles. Desktop intake/link/embedded Jobs layout inspected; full real-user/mobile evaluation remains tracked separately.",
       "notes": [
-        "The user requested a complete frontend simplification while retaining Supabase/Pinecone/Gemini, ownership, evidence and approval boundaries. These are bounded delivered capabilities, not certification of the complete career pipeline."
+        "The user requested a complete frontend simplification while retaining Supabase/Pinecone/Gemini, ownership, evidence and approval boundaries. These are bounded delivered capabilities, not certification of the complete career pipeline.",
+        "2026-11-09: Saving a readable JD link now starts the role questionnaire analysis automatically; the empty questionnaire location is shown before any roles are prepared. The model and approved-fact gates remain in the service, with visible errors if they block generation."
       ],
       "outputLinks": [
         {
@@ -3740,6 +3741,11 @@
       "date": "2026-11-09",
       "title": "Step 2 to Step 3 navigation correction",
       "detail": "Removed an approval-based disabled gate from the Expand experience and skills navigation button. The Step 3 analysis gate remains unchanged. Vinext production build passed and public Site version 5 deployed; no profile mutation or signed-in browser click-through was performed."
+    },
+    {
+      "date": "2026-11-09",
+      "title": "JD link to questionnaire handoff",
+      "detail": "The public Hirebridge JD used in the reported flow yielded 37 source segments through readJDLink. Saving a JD link now automatically calls buildProfiles for the new document; an empty-state heading shows where questions appear. Twelve Builder UI, incremental and input tests plus TypeScript passed. Hosted signed-in interaction remains unverified."
     }
   ]
 }
