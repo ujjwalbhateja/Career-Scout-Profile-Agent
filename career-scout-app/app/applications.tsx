@@ -63,7 +63,7 @@ export default function Applications({version,job,onProfile}:{roles?:Role[];vers
       {error&&<p role="alert" className="pf-error">{error}</p>}
       <button className="cw-primary" disabled={needsProfile||!roleId||!ready||busy||active(run)||!form.title.trim()||!form.company.trim()||form.description.trim().length<80||!form.application_url.trim()} onClick={()=>void act('start')}>{busy?<LoaderCircle size={17} className="spin"/>:<FileText size={17}/>}Prepare application package</button>
       {!ready&&<button className="cw-text-button" onClick={()=>void loadHistory().then(()=>{setReady(true);setError('');}).catch(e=>setError(e.message))}><RefreshCw size={14}/>Check pipeline connection</button>}
-      <p className="pf-muted">Packages are stored on this computer and contain a Markdown/text resume, job description, application link, match assessment, and validation. You submit the application yourself.</p>
+      <p className="pf-muted">Packages are saved privately for your signed-in account and contain a Markdown/text resume, job description, application link, match assessment, and validation. You submit the application yourself.</p>
     </section>
     <section className="pf-card ap-results"><h2>Your application runs</h2>
       {history.length>0&&<label>Saved run<select value={run?.id||''} disabled={active(run)} onChange={e=>void loadRun(e.target.value).catch(e=>setError(e.message))}>{history.map(item=><option key={item.id} value={item.id}>{item.updated?new Date(item.updated).toLocaleString():item.id.slice(0,8)} · {item.status.replaceAll('_',' ')}</option>)}</select></label>}
@@ -76,7 +76,7 @@ export default function Applications({version,job,onProfile}:{roles?:Role[];vers
         {['interrupted','failed','cancelled'].includes(run.status)&&<><p>Retry reuses completed steps and checks your current approved profile again.</p><button className="cw-secondary" disabled={busy} onClick={()=>void act('retry')}>Resume run</button></>}
         {result?.status==='needs_review'&&<p>Review the gaps above. Correct or clarify your profile in My profile, then start a new run.</p>}
         {result?.draft&&<details><summary>{stored?'Validated resume':'Draft resume — review incomplete'}</summary><pre className="ap-resume">{result.draft.content}</pre></details>}
-        {!active(run)&&<p><button className="cw-text-button" disabled={busy} onClick={()=>{if(window.confirm('Delete this run and its stored package from this computer?'))void act('delete');}}>Delete run and package</button></p>}
+        {!active(run)&&<p><button className="cw-text-button" disabled={busy} onClick={()=>{if(window.confirm('Delete this run and its stored package?'))void act('delete');}}>Delete run and package</button></p>}
       </div>:<p>Your prepared packages and progress will appear here.</p>}
     </section>
   </div>;

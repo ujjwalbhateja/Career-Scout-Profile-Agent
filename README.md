@@ -4,6 +4,10 @@ This repository contains a fork of the Career Scout application in [`career-scou
 
 The original standalone Profile library and its earlier webpage remain at the repository root for source history and CLI use. **The primary website retains the Career Scout name** and is launched by `Start-Profile-Agent.ps1` on port 5176. The earlier root `web/` page on port 5175 is superseded.
 
+## Share the live app
+
+Open [Career Scout](https://career-scout.ujjwalbhateja.chatgpt.site). The public Site asks each visitor to sign in with ChatGPT, then gives them their own private profile and application history. The hosted application uses the existing Supabase project and the configured Gemini/Pinecone providers. Its Matcher, Tailor and Critic run in the hosted Worker; the local launcher uses the Python pipeline. An anonymous HTTPS request was verified to redirect to ChatGPT sign-in. A complete signed-in teacher run has not yet been observed.
+
 ## Run on Windows
 
 1. Install Node.js 22.13 or newer and Python with `uv`.

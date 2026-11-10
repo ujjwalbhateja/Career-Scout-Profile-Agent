@@ -1,5 +1,13 @@
 # Standalone Profile Agent context
 
+## Public Career Scout teacher site (November 9, 2026)
+
+The user asked for a third-party link where their teacher can upload a resume and run the live Profile and application workflow. The active fork was published as a separate public Sites project at `https://career-scout.ujjwalbhateja.chatgpt.site`. The page title and logo remain Career Scout. Visitors sign in with ChatGPT; the server uses each Site user ID for private Supabase profile and application data. This Site is separate from the original Career Scout Site and the local `127.0.0.1` launcher.
+
+The hosted deployment uses the existing Supabase project and configured Gemini/Pinecone providers. It executes Matcher, Tailor, Critic and application package storage within the hosted Worker because the local Python pipeline cannot run on Cloudflare Workers. It reuses the checked-in agent prompt files and current approved-profile loader, and stores bounded runs in the owner-scoped profile state. The local launcher still uses the Python pipeline when configured. Public deployment succeeded, and an anonymous HTTPS request to the final link returned the expected ChatGPT sign-in redirect. A signed-in teacher resume-to-package run has not yet been observed, so do not describe that end-to-end path as live-provider verified.
+
+The hosted source was pushed to the Sites source repository at commit `6b9107d26b332f6aedc4f038d9e19f2186bf54b2` and saved as version 1. The public GitHub repository keeps the same application source under `career-scout-app/`; the Sites source checkout and package remain ignored under `.local/`.
+
 ## Full Career Scout fork (November 9, 2026)
 
 The user corrected the scope: this repository should contain all Career Scout application features except the Scout agent. The full Career Scout application was imported at commit `dd95addd8811f960a7235d70f747193bfd94aa23` into `career-scout-app/`. The root standalone library and earlier port-5175 webpage remain as history; `Start-Profile-Agent.ps1` now launches the imported app on port 5176.

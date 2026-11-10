@@ -2,6 +2,7 @@ import {getChatGPTUser} from '@/app/chatgpt-auth';
 import {getPipelineEnvironment} from '@/lib/pipeline-runtime';
 import {ProfileError} from '@/lib/profile/domain.mjs';
 import {applicationRequest,pipelineCall} from '@/lib/workflow/pipeline-client.mjs';
+import {hostedPipeline} from '@/lib/workflow/hosted-pipeline';
 export const dynamic='force-dynamic';
 const headers={'Cache-Control':'private, no-store','X-Content-Type-Options':'nosniff','Vary':'Cookie, Origin'};
 const reply=(data:unknown,status=200)=>Response.json(data,{status,headers});
@@ -11,7 +12,8 @@ export async function GET(request:Request){
   try{
     const user=await owner(),params=new URL(request.url).searchParams,env=getPipelineEnvironment();
     const action=params.has('health')?'health':params.has('download')?'download':params.has('id')?'get':'list';
-    const response=await pipelineCall(env,action,{owner:user,request_id:params.get('id')||params.get('download')||''});
+    const input={owner:user,request_id:params.get('id')||params.get('download')||''};
+    const response=env.CAREER_AGENT_URL?await pipelineCall(env,action,input):await hostedPipeline(user,action,input);
     if(action==='download')return new Response(response.body,{headers:{...headers,'Content-Type':'application/zip','Content-Disposition':'attachment; filename="career-scout-application.zip"'}});
     return reply(await response.json());
   }catch(error){return failure(error);}
@@ -33,7 +35,8 @@ export async function POST(request:Request){
       payload.request=applicationRequest(body);
       payload.package_date=new Intl.DateTimeFormat('en-CA',{timeZone:'America/New_York',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
     }
-    const response=await pipelineCall(getPipelineEnvironment(),body.action,payload);
+    const env=getPipelineEnvironment();
+    const response=env.CAREER_AGENT_URL?await pipelineCall(env,body.action,payload):await hostedPipeline(user,body.action,payload);
     return reply(await response.json(),body.action==='start'?202:200);
   }catch(error){return failure(error);}
 }
