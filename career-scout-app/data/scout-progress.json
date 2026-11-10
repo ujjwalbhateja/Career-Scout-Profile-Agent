@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "revision": "2026-11-09.1",
+  "revision": "2026-11-09.2",
   "reviewedOn": "2026-11-09",
   "summary": "Profile Agent fork of Career Scout. Resume intake, factual review, optional JD questionnaires, memory and application preparation remain active. The Scout agent and job discovery flow are removed. Application preparation requires a user-supplied job. The task records below retain their imported Career Scout statuses and historical evidence; the active fork view excludes Scout-owned tasks without changing that history. Local validation passed; real-user and hosted validation remain separate.",
   "framework": {
@@ -3057,7 +3057,8 @@
         "2026-10-30: Step 3 now displays selected-JD requirements/evidence/gaps rather than AI role cards. Fact/questionnaire review precedes consolidated saving; the final step previews source-backed context and starts Scout retrieval of actual openings.",
         "2026-10-30 cumulative-profile update: Facts displays both sections; the JD review uses one decision table, Step 5 reviews additions, Step 6 saves the master profile, and Step 7 dispatches actual job research. Local HTTP checks are separate from browser click-through verification.",
         "2026-10-31 Section 1 correction: Section 1 has its own Read Section 1 from resume control, independent of model availability. Full-source coverage remains separate, and the Section 2 workflow is unchanged.",
-        "2026-11-01: User requested removal of four website steps: JD comparison, missing JD experience, profile additions and consolidated-profile building. Removed their navigation, panels and deep-link/automatic entry paths. Document analysis returns to Facts. Master/Scout remains available with its existing saved-profile guard; no automatic approval or consolidation was introduced. Saved data, prompts and backend actions are unchanged. Local verification is recorded in the project context; hosted publication is separate."
+        "2026-11-01: User requested removal of four website steps: JD comparison, missing JD experience, profile additions and consolidated-profile building. Removed their navigation, panels and deep-link/automatic entry paths. Document analysis returns to Facts. Master/Scout remains available with its existing saved-profile guard; no automatic approval or consolidation was introduced. Saved data, prompts and backend actions are unchanged. Local verification is recorded in the project context; hosted publication is separate.",
+        "2026-11-09: Step 2 navigation to Expand experience and skills no longer requires an approved professional fact. JD intake is optional; analysis retains its own approval prerequisite. Hosted build passed and Site version 5 deployed. Signed-in browser click-through remains unverified."
       ],
       "outputLinks": [
         {
@@ -3734,6 +3735,11 @@
       "date": "2026-11-05",
       "title": "Header navigation cleanup",
       "detail": "Removed only the Jobs and Applications header buttons at user request. Step 4, application handlers, agent prompts, stored data and all task statuses remain unchanged. Twelve existing Step 4/progress/architecture checks and TypeScript passed. No provider calls, profile writes or deployment."
+    },
+    {
+      "date": "2026-11-09",
+      "title": "Step 2 to Step 3 navigation correction",
+      "detail": "Removed an approval-based disabled gate from the Expand experience and skills navigation button. The Step 3 analysis gate remains unchanged. Vinext production build passed and public Site version 5 deployed; no profile mutation or signed-in browser click-through was performed."
     }
   ]
 }

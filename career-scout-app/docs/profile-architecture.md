@@ -1,6 +1,6 @@
 # Profile Agent: structure and reviewed progress
 
-Reviewed 2026-11-09; record revision 2026-11-09.1-profile-agent. Generated from the same task mapping and reviewed record as /profile/architecture. States summarize tracked acceptance; they are not live health checks. There are 40 distinct items in the diagram, including Master dispatch; shared items are counted once.
+Reviewed 2026-11-09; record revision 2026-11-09.2-profile-agent. Generated from the same task mapping and reviewed record as /profile/architecture. States summarize tracked acceptance; they are not live health checks. There are 40 distinct items in the diagram, including Master dispatch; shared items are counted once.
 
 ```mermaid
 flowchart TD

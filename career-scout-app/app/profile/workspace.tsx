@@ -153,7 +153,7 @@ export default function ProfileWorkspace(){
         {tab==='Facts'&&<section>
           <div className="cw-section-heading"><h2>Your factual profile.</h2><p>Personal records, skills and professional work experience from your resume.</p></div>
           <FactReview state={state} disabled={disabled} showReviewDetails={false} onExtract={resumes.length?()=>{void act('extractSection1',{id:resumes.at(-1)!.id},'Section 1 updated from your saved resume.');}:undefined} onConfirmDates={async body=>!!await act('confirmEmploymentDates',body,'Full years confirmed and saved for this role.')}/>
-          <div className="cw-step-footer"><span>JD requirements never become facts about you.</span><button className="cw-primary" disabled={disabled||!approved.some(f=>!['personal','preferences'].includes(f.category))} onClick={()=>setTab('Builder')}>Expand experience & skills <ArrowRight size={16}/></button></div>
+          <div className="cw-step-footer"><span>JD requirements never become facts about you.</span><button className="cw-primary" onClick={()=>setTab('Builder')}>Expand experience & skills <ArrowRight size={16}/></button></div>
         </section>}
         {tab==='Builder'&&<section>
           <div className="cw-section-heading"><h2>Expand your experience and skills.</h2><p>Each role has its own questionnaire. Approve confirms the displayed wording, Reject excludes it, and Somewhat saves a revision for a separate approval. Your existing factual records remain intact.</p></div>

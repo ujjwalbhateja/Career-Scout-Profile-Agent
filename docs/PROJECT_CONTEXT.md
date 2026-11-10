@@ -1,5 +1,9 @@
 # Standalone Profile Agent context
 
+## Step 2 navigation (November 9, 2026)
+
+The user reported that the Step 2 “Expand experience & skills” button was disabled. Its navigation was incorrectly gated on an approved professional fact even though Step 3 allows optional JD intake and has its own analysis prerequisites. The button now always opens Step 3; no fact or approval is changed. The hosted Vinext build passed and the fix was deployed to the public Site as version 5. Version 6 synchronized the reviewed progress record and generated architecture document from source commit `fb431715809d1fb3b6aef47d703970628d3b9012`.
+
 ## Recent two-digit date convention (November 9, 2026)
 
 The user clarified that `Jun 24` means June 2024. The active fork now interprets recent source dates written as `Month YY` using 2000 + YY when that year is no later than the current year. Source facts and résumé text stay literal; only the duration projection uses the expanded year and labels that interpretation. Future or older ambiguous suffixes still require explicit confirmation. A read-only calculation against the existing main Career Scout profile now reports all eight displayed employment roles as calculable, with no profile write. The updated duration tests, TypeScript check and hosted build passed.
@@ -16,7 +20,7 @@ The user asked for a third-party link where their teacher can upload a resume an
 
 The hosted deployment uses the existing Supabase project and configured Gemini/Pinecone providers. It executes Matcher, Tailor, Critic and application package storage within the hosted Worker because the local Python pipeline cannot run on Cloudflare Workers. It reuses the checked-in agent prompt files and current approved-profile loader, and stores bounded runs in the owner-scoped profile state. Hosted application requests await the agent chain to completion, avoiding a short background-worker lifetime. The local launcher still uses the Python pipeline when configured. Public deployment succeeded, and an anonymous HTTPS request to the final link returned the expected ChatGPT sign-in redirect. A signed-in teacher resume-to-package run has not yet been observed, so do not describe that end-to-end path as live-provider verified.
 
-The current hosted source was pushed to the Sites source repository at commit `4cd6609d495a4df41484b6dcd2092289452c69b3` and deployed as version 4. The public GitHub repository keeps the same application source under `career-scout-app/`; the Sites source checkout and package remain ignored under `.local/`.
+The current hosted source was pushed to the Sites source repository at commit `fb431715809d1fb3b6aef47d703970628d3b9012` and deployed as version 6. The public GitHub repository keeps the same application source under `career-scout-app/`; the Sites source checkout and package remain ignored under `.local/`.
 
 ## Full Career Scout fork (November 9, 2026)
 

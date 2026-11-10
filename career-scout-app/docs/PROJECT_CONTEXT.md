@@ -2,6 +2,10 @@
 
 Updated 2026-11-09, America/New_York. Fork app root: `C:\Users\ujjwa\Job Search\Career Scout Profile Agent\career-scout-app`.
 
+## Step 2 navigation correction (2026-11-09)
+
+The Step 2 “Expand experience & skills” button was disabled unless an approved professional fact existed, even though Step 3 permits optional JD intake. Navigation now opens Step 3 without that approval gate. The Step 3 analysis action still checks its required facts. The hosted build passed and Site version 5 was deployed; signed-in browser click-through remains unverified. The reviewed progress record is revision `2026-11-09.2`.
+
 ## Profile Agent fork import (2026-11-09)
 
 This copy is housed in the separate Career Scout Profile Agent repository. Source baseline: Career Scout commit `dd95addd8811f960a7235d70f747193bfd94aa23`. Active fork changes and local identity are documented in `PROFILE_AGENT_FORK.md`; the source Career Scout history below is retained as imported context. The Scout agent, discovery API and search page are removed in the fork while the Profile, application and progress features remain. The reviewed tracker retains its original task history; the live fork view filters Scout-owned tasks. Local validation on November 9 passed 631 Node tests, 49 Python tests and TypeScript type checking. Provider availability and real-user onboarding were not validated by those tests.
