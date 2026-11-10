@@ -10,6 +10,7 @@
   "exports": "./src/index.mjs",
   "scripts": {
     "start": "node --env-file-if-exists=.env.local bin/profile-agent.mjs",
+    "web": "node --env-file-if-exists=.env.local src/web-server.mjs",
     "demo": "node bin/profile-agent.mjs demo",
     "test": "node --test tests/*.test.mjs",
     "verify:upstream": "node scripts/verify-upstream.mjs"

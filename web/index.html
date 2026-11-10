@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Career Scout Profile Agent</title>
+  <link rel="stylesheet" href="/career-workspace.css">
+  <link rel="stylesheet" href="/career-profile.css">
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <div class="cw-app">
+    <header class="cw-header"><a class="cw-logo" href="/"><span>CS</span><span>Career Scout <strong>Profile Agent</strong></span></a><span class="web-private">Local, private workspace</span></header>
+    <section class="cw-intro"><div><p class="cw-eyebrow">PROFILE · FACT · PROFILE BUILDER</p><h1>Build a profile from <em>your evidence.</em></h1><p>Upload your resume, review source linked facts, compare optional job descriptions, and hand the approved profile to your next workflow.</p></div><div class="cw-overview"><div class="cw-saved">Profile status</div><div><strong id="profile-count">—</strong><span>approved facts</span></div><div class="cw-progress-track"><i id="profile-progress" style="width:0%"></i></div><button id="refresh" type="button">Refresh profile ↗</button></div></section>
+    <div id="message" role="status" aria-live="polite"></div>
+    <div class="cw-layout"><aside class="cw-sidebar"><p class="cw-eyebrow">YOUR WORKFLOW</p><nav aria-label="Profile steps">
+      <button type="button" data-step="documents" class="active"><span class="cw-step-number">01</span><span><strong>Documents</strong><small>Resume and optional JDs</small></span></button>
+      <button type="button" data-step="facts"><span class="cw-step-number">02</span><span><strong>Factual profile</strong><small>Review source evidence</small></span></button>
+      <button type="button" data-step="builder"><span class="cw-step-number">03</span><span><strong>Profile Builder</strong><small>Compare and approve additions</small></span></button>
+      <button type="button" data-step="handoff"><span class="cw-step-number">04</span><span><strong>Current profile</strong><small>Verified handoff</small></span></button>
+      <button type="button" data-step="memory"><span class="cw-step-number">05</span><span><strong>My data</strong><small>Retrieve and export</small></span></button>
+    </nav><div class="cw-sidebar-note"><strong>Evidence stays attached</strong><p>Job descriptions are requirements to compare. They do not establish your experience.</p></div></aside>
+    <main id="panel" class="cw-panel" aria-live="polite"></main></div>
+    <footer class="cw-footer"><span>Career Scout · Profile Agent</span><span>Saved decisions are bound to the current profile revision.</span></footer>
+  </div>
+</body>
+</html>

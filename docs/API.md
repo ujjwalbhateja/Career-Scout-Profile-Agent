@@ -19,6 +19,7 @@ The `owner` argument is mandatory. The wrapper filters environment keys, rejects
 | `read()` | Latest `{revision, state, currentProfile, finalProfileStatus, providers, limits}`; legacy final-status metadata is not a new workflow gate |
 | `current(version = 'current')` | Current eligible packet; pinned `current-…` fails on changed content |
 | `questionnaires()` | `{revision, roles}` containing recorded capabilities, unresolved/skipped gaps, experience and skill review rows |
+| `original(documentId)` | Owner-scoped download of an active uploaded original for the local webpage |
 | `upload(file, {kind, title, selected, revision})` | File intake through the Master/Profile dispatch boundary; stored source and deterministic Section 1 parsing for resumes |
 | `execute(body)` | Allowlisted Profile operation through the Master/Profile boundary; no client-controlled ownership |
 | `readPrompt(name)` export | Fixed `fact`, `builder`, `profile` or `memory` policy file; no caller-supplied path |
@@ -92,19 +93,21 @@ Allowed Builder decisions are `approve`, `reject`, `somewhat` and `approve_revis
 
 A successful `reviewBuilder` result includes `kind: builder_review_saved`, the submission ID, decisions/fact references, `storageVerified: true` and a current-profile summary. If read-back fails, the operation reports failure to confirm; an earlier database write may already have succeeded, so replay the same submission deliberately instead of generating a duplicate approval.
 
-## Original Career Scout HTTP API
+## Local Profile webpage HTTP API
 
-The source application exposes these routes; this standalone repository does not start them:
+Run `npm run web` to expose these routes on the loopback-only local host. The host requires its per-process access link/session cookie; POST also requires the exact local Origin. Owner identity comes from `PROFILE_OWNER_ID` in server configuration.
 
 | Route | Behavior |
 | --- | --- |
 | `GET /api/profile` | Authenticated owner-scoped profile read |
 | `GET /api/profile?status` | Configuration flags |
+| `GET /api/profile?questionnaires` | Current visible Builder review rows and fingerprints |
+| `GET /api/profile?current` | Current source-backed handoff packet |
 | `GET /api/profile?download=<documentId>` | Authorized private original download |
 | `POST /api/profile` JSON | Same-origin bounded action dispatch |
 | `POST /api/profile` multipart | Same-origin bounded file upload |
 
-The original API rejects supplied `owner`, `owner_id` or `namespace` fields, derives identity from its trusted host, and marks responses private/no-store. Host authentication must prevent clients forging trusted identity headers. Copying the library into a public server without that boundary is not equivalent to Career Scout's deployment.
+The local API rejects supplied `owner`, `owner_id` or `namespace` fields through the library wrapper and marks responses private/no-store. Its session is for one trusted local user and must not be treated as hosted multi-user authentication. The original Career Scout hosted API remains separate.
 
 ## Provider boundaries
 

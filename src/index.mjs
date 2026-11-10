@@ -3,6 +3,7 @@ import {ProfileService,approvedProfileLoader} from '../lib/profile/service.mjs';
 import {dispatchProfileOperation} from '../lib/workflow/profile-intake.mjs';
 import {buildRoleQuestionnaires} from '../lib/profile/builder-expansion.mjs';
 import {providerStatus} from '../lib/profile/providers.mjs';
+import {ProfileError} from '../lib/profile/domain.mjs';
 
 const promptPaths={fact:'fact',builder:'profile_builder',profile:'profile',memory:'memory'};
 export async function readPrompt(name){
@@ -21,6 +22,12 @@ export function createProfileAgent({env={},owner}={}){
     status:()=>providerStatus(config),
     read:()=>service.read(),
     current:(version='current')=>approvedProfileLoader(service)({version}),
+    original:async documentId=>{
+      const {state}=await service.memory.load();
+      const document=state.documents.find(d=>d.id===documentId&&!d.deleted);
+      if(!document?.objectPath||state.deletion)throw new ProfileError('Original document not found.',404);
+      return {response:await service.memory.download(document.objectPath),filename:document.filename||'document',mime:document.mime||'application/octet-stream'};
+    },
     questionnaires:async()=>{const record=await service.memory.load();return {revision:record.revision,roles:buildRoleQuestionnaires(record.state)};},
     execute:async body=>{
       if(!body||Array.isArray(body)||!actions.has(body.action))throw new Error('Unsupported Profile action');

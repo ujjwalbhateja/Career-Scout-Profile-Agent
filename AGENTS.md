@@ -7,4 +7,4 @@
 - Run `npm test` for behavioral changes and `npm run verify:upstream` for preservation checks. Record actual validation in `docs/VALIDATION.md`; fixtures are not live-provider evidence.
 - Keep `.env.local`, credentials, real resumes, private outputs and local caches out of Git. Use `.local/` for private operation files and fixtures containing personal data.
 - Never use the existing Career Scout owner/profile for tests. The standalone CLI uses an explicit separate `profile-agent:` identity; library integrations must resolve owner identity from trusted server context.
-- This repository does not include a browser server or downstream Scout/applications. Do not present copied shared utility modules as newly activated workflows.
+- This repository includes a loopback-only Profile webpage, but no downstream Scout/applications. Keep the browser host local, derive the owner from trusted server configuration, enforce the local session and same-origin checks, and never send server credentials to the browser. Do not present copied shared utility modules as newly activated workflows.

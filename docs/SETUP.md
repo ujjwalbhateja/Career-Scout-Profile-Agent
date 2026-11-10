@@ -38,6 +38,14 @@ Copy `.env.example` to ignored `.env.local`. Fill in values locally, never in do
 
 The standalone process does not read Career Scout's `.env.local`, copy its credentials or infer its authenticated owner. The CLI prefix prevents accidental reuse of its ordinary owner identity. Reusing a Supabase project is possible after configuration, but the new owner must remain distinct if separate profile data is intended. No credentials or live data were configured as part of this extraction.
 
+## Local Profile webpage
+
+After `npm ci` and local `.env.local` configuration, run `./Start-Profile-Agent.ps1` on Windows or `npm run web` with Node.js on another system. The host binds to `127.0.0.1:5175` by default; `PROFILE_WEB_PORT` can change the port. It opens a browser on Windows and prints a local access link. Rerunning the Windows launcher reuses a running host through an ignored `.local/web-access-<port>.txt` link file. That link establishes an HTTP-only, SameSite cookie and redirects to the clean local URL. Do not share the access link, file or browser session. Press Ctrl+C in the original launcher terminal to stop the host.
+
+The webpage exposes the Profile workflow only: upload or paste a resume, add optional JDs, explicitly analyze sources, approve or reject Fact proposals, compare approved facts with selected JDs, review Builder rows, download the current profile packet, and search/export/delete owner-scoped data. It never approves a claim automatically. Gemini analysis buttons are disabled when `GEMINI_API_KEY` is absent. The status display reports configured providers, not live provider health.
+
+This web host is designed for one trusted local owner. It is not a multi-user hosted sign-in layer. It requires the configured `PROFILE_OWNER_ID`, a private local access link, a session cookie and same-origin POST requests; it never accepts an owner supplied in a browser action. The original Career Scout hosted site remains separate.
+
 For a new database, apply these files in order using a project administrator's Supabase SQL tooling:
 
 1. `supabase/migrations/202610280001_profile_memory.sql`
@@ -82,6 +90,6 @@ Removing a document withdraws it and its dependent evidence from active use; ori
 
 ## Integration and deployment limits
 
-The library accepts a trusted `owner` argument from server code. Do not accept it unvalidated from a browser body. Any future HTTP host needs authenticated owner resolution, request-size limits, same-origin/CSRF handling where applicable, private responses and protection for server credentials. The original Career Scout host provides those boundaries; this package does not ship a new web server.
+The library accepts a trusted `owner` argument from server code. Do not accept it unvalidated from a browser body. The bundled HTTP host is loopback-only with a per-process access link and one configured owner; it is not suitable for internet hosting. Any future public/multi-user host needs authenticated owner resolution, request-size limits, same-origin/CSRF handling, private responses and protection for server credentials.
 
-The Python service, React UI, Scout discovery, matching, tailoring, Critic, applications and reminders are outside this standalone entry point. Use Career Scout for that surrounding application. Shared imported modules are preserved for compatibility; their presence does not mean those workflows are exposed or started here.
+The original React UI, Python service, Scout discovery, matching, tailoring, Critic, applications and reminders are outside this standalone entry point. Use Career Scout for that surrounding application. Shared imported modules are preserved for compatibility; their presence does not mean those workflows are exposed or started here.
