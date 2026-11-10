@@ -1,5 +1,5 @@
 import {zipSync,strToU8} from 'fflate';
-import {getProfileEnvironment,scheduleProfileWork} from '@/lib/profile-runtime';
+import {getProfileEnvironment} from '@/lib/profile-runtime';
 import {ProfileService,pythonProfileLoader} from '@/lib/profile/service.mjs';
 import {ProfileError,digest} from '@/lib/profile/domain.mjs';
 import {runProvider} from '@/lib/workflow/agent-providers.mjs';
@@ -83,8 +83,10 @@ export async function hostedPipeline(owner:string,action:string,payload:any={}):
     if(!payload.request?.selected_job)throw new ProfileError('Provide a target job.',400);
     const request=payload.request;
     await change(owner,items=>items.push({id,status:'queued',phase:'master',updated:stamp(),request}));
-    scheduleProfileWork(()=>execute(owner,id,request));
-    return Response.json({id,status:'queued',phase:'master',updated:stamp()});
+    await execute(owner,id,request);
+    const finished=(await runs(owner)).find(item=>item.id===id);
+    if(!finished)throw new ProfileError('Application run was removed.',404);
+    return Response.json(publicRun(finished));
   }
   if(!existing)throw new ProfileError('Application run not found.',404);
   if(action==='delete'){
@@ -95,8 +97,10 @@ export async function hostedPipeline(owner:string,action:string,payload:any={}):
   if(action==='retry'){
     if(!['failed','cancelled','interrupted'].includes(existing.status))throw new ProfileError('Only an incomplete run can be retried.',409);
     await stage(owner,id,'master',{status:'queued',result:null});
-    scheduleProfileWork(()=>execute(owner,id,existing.request));
-    return Response.json({id,status:'queued',phase:'master'});
+    await execute(owner,id,existing.request);
+    const finished=(await runs(owner)).find(item=>item.id===id);
+    if(!finished)throw new ProfileError('Application run was removed.',404);
+    return Response.json(publicRun(finished));
   }
   if(action==='cancel'){
     await stage(owner,id,existing.phase,{status:'cancelled',result:{status:'cancelled'}});
