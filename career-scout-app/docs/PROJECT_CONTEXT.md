@@ -6,6 +6,8 @@ Updated 2026-11-09, America/New_York. Fork app root: `C:\Users\ujjwa\Job Search\
 
 The user reported no questionnaire after loading a job link. The link importer previously stopped after saving the JD and required a separate Analyze new roles click. A successful link import now calls Profile Builder's existing analysis for that new JD and scrolls to its questionnaire. The Builder shows an explicit empty state before generation. The sample public Hirebridge link yielded 37 source segments through the existing reader; no JD text was added to the repository. The existing model and approved-fact requirements remain enforced by the service. Twelve focused Builder tests and TypeScript passed; signed-in hosted click-through remains unverified. Reviewed progress revision: `2026-11-09.3`.
 
+The Profile UI was compared against the main Career Scout source. The link reader is byte-identical. The page keeps Career Scout's workspace label, and the questionnaire instruction now states that links start analysis automatically while uploaded or pasted JDs use the existing Analyze new roles action. Scout search removal, the application step, and the date-display correction remain the intentional fork differences.
+
 ## Step 2 navigation correction (2026-11-09)
 
 The Step 2 “Expand experience & skills” button was disabled unless an approved professional fact existed, even though Step 3 permits optional JD intake. Navigation now opens Step 3 without that approval gate. The Step 3 analysis action still checks its required facts. The hosted build passed and Site version 5 was deployed; signed-in browser click-through remains unverified. The reviewed progress record is revision `2026-11-09.2`.

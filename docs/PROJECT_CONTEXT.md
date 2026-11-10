@@ -2,7 +2,7 @@
 
 ## Job link questionnaire (November 9, 2026)
 
-The user reported that adding a job link did not show a questionnaire. The hosted fork's link import saved the JD but left analysis behind a separate button. The page now starts the existing Profile Builder analysis for that JD after a successful import, then scrolls to the questionnaire. An explicit empty state shows where questions will appear. The public Hirebridge link from the reported flow parsed into 37 JD source segments in a local read-only test. Model availability and approved profile facts are still required to generate questions. Twelve focused Builder tests, TypeScript and the hosted build passed. The Site source matches the local file, the published archive's client bundle matches the build and contains both questionnaire strings, and Site version 7 reports a successful production deployment. Signed-in hosted interaction remains unverified.
+The user reported that adding a job link did not show a questionnaire. The hosted fork's link import saved the JD but left analysis behind a separate button. The page now starts the existing Profile Builder analysis for that JD after a successful import, then scrolls to the questionnaire. An explicit empty state shows where questions will appear. The public Hirebridge link from the reported flow parsed into 37 JD source segments in a local read-only test. Model availability and approved profile facts are still required to generate questions. Twelve focused Builder tests, TypeScript and the hosted build passed. The Site source matches the local file, the published archive's client bundle matches the build and contains both questionnaire strings, and Site version 8 reports a successful production deployment. The page also retains the original Career Scout workspace label. Signed-in hosted interaction remains unverified.
 
 ## Step 2 navigation (November 9, 2026)
 
@@ -24,7 +24,7 @@ The user asked for a third-party link where their teacher can upload a resume an
 
 The hosted deployment uses the existing Supabase project and configured Gemini/Pinecone providers. It executes Matcher, Tailor, Critic and application package storage within the hosted Worker because the local Python pipeline cannot run on Cloudflare Workers. It reuses the checked-in agent prompt files and current approved-profile loader, and stores bounded runs in the owner-scoped profile state. Hosted application requests await the agent chain to completion, avoiding a short background-worker lifetime. The local launcher still uses the Python pipeline when configured. Public deployment succeeded, and an anonymous HTTPS request to the final link returned the expected ChatGPT sign-in redirect. A signed-in teacher resume-to-package run has not yet been observed, so do not describe that end-to-end path as live-provider verified.
 
-The current hosted source was pushed to the Sites source repository at commit `13f7a0851919ef971d5a37a100474e84059dca04` and deployed as version 7. The public GitHub repository keeps the same application source under `career-scout-app/`; the Sites source checkout and package remain ignored under `.local/`.
+The current hosted source was pushed to the Sites source repository at commit `641c5a9d17d15209a039fa23a0f5c6b8a6d93fc9` and deployed as version 8. The public GitHub repository keeps the same application source under `career-scout-app/`; the Sites source checkout and package remain ignored under `.local/`.
 
 ## Full Career Scout fork (November 9, 2026)
 
